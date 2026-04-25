@@ -3963,6 +3963,7 @@ export interface HybridQueryOptions {
   candidateLimit?: number;  // default RERANK_CANDIDATE_LIMIT
   explain?: boolean;        // include backend/RRF/rerank score traces
   intent?: string;          // domain intent hint for disambiguation
+  skipExpand?: boolean;     // skip LLM query expansion, use original query only
   skipRerank?: boolean;     // skip LLM reranking, use only RRF scores
   chunkStrategy?: ChunkStrategy;
   hooks?: SearchHooks;
@@ -4011,6 +4012,7 @@ export async function hybridQuery(
   const collection = options?.collection;
   const explain = options?.explain ?? false;
   const intent = options?.intent;
+  const skipExpand = options?.skipExpand ?? false;
   const skipRerank = options?.skipRerank ?? false;
   const hooks = options?.hooks;
 
@@ -4038,7 +4040,7 @@ export async function hybridQuery(
   // Step 2: Expand query (or skip if strong signal)
   hooks?.onExpandStart?.();
   const expandStart = Date.now();
-  const expanded = hasStrongSignal
+  const expanded = hasStrongSignal || skipExpand
     ? []
     : await store.expandQuery(query, undefined, intent);
 
